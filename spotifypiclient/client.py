@@ -10,6 +10,8 @@ import threading
 
 import spotify
 
+from spotify.error import LibError
+
 log = logging.getLogger()
 
 redis_client = None
@@ -40,24 +42,20 @@ class Client(object):
         self.play_track()
 
     def play_track(self):
+        # create event for checking if the track is complete
         end_of_track = threading.Event()
 
         def on_end_of_track(self):
             end_of_track.set()
         spotify_session.on(spotify.SessionEvent.END_OF_TRACK, on_end_of_track)
-
+        # load the playlist
         self.playlist = self.playlist.load()
         try:
             track = self.playlist.tracks[0].load()
             self.session.player.load(track)
             self.session.player.play()
-            requests.delete(self.remote_url,
-                            data=json.dumps({'uri': str(track.link),
-                                             'client_address':
-                                             self.client_address}),
-                            headers=self.auth_header)
+            self.remove_track(track)
             self.add_track()
-            log.info('adding track')
 
             # Wait for track to complete
             try:
@@ -67,7 +65,10 @@ class Client(object):
                 pass
         except IndexError:
             # this happends when the playlist is empty
-            log.info('playlist empty.. adding track')
+            self.add_track()
+        except LibError:
+            # this happends when the track is not available
+            self.remove_track(track)
             self.add_track()
 
         self.play_track()
@@ -77,6 +78,13 @@ class Client(object):
                       data=json.dumps(
                           {'client_address': self.client_address}),
                       headers=self.auth_header)
+
+    def remove_track(self, track):
+        requests.delete(self.remote_url,
+                        data=json.dumps({'uri': str(track.link),
+                                         'client_address':
+                                             self.client_address}),
+                        headers=self.auth_header)
 
     def get_auth_header(self):
         try:
