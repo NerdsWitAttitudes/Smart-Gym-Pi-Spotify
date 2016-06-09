@@ -1,0 +1,47 @@
+[app:main]
+remote_url = 
+local_MAC_address =
+
+[spotify]
+username = 
+password = 
+playlist.id =
+
+[redis]
+# time it should take for a key to expire in seconds
+expiration_time =
+host = localhost
+port = 6379
+db = 0
+
+[oauth]
+access_token_url = 
+client_id = 
+client_secret = 
+
+[loggers]
+keys = root, spotifypiclient
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = INFO
+handlers = console
+
+[logger_spotifypiclient]
+level = INFO
+handlers = console
+qualname = smartgymapi
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(asctime)s %(levelname)-5.5s [%(name)s:%(lineno)s][%(threadName)s] %(message)s
