@@ -17,9 +17,7 @@ log = logging.getLogger()
 redis_client = None
 
 parser = argparse.ArgumentParser(
-    description="""
-        Plays a spotify playlist for a gym
-    """
+    description="""Plays a spotify playlist for a gym"""
 )
 
 parser.add_argument(
