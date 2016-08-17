@@ -50,32 +50,38 @@ class Client(object):
         self.playlist = self.playlist.load()
         try:
             track = self.playlist.tracks[0].load()
+            log.info(track)
             self.session.player.load(track)
             self.session.player.play()
             self.remove_track(track)
             self.add_track()
 
             # Wait for track to complete
-            try:
-                while not end_of_track.wait(0.1):
-                    pass
-            except KeyboardInterrupt:
+
+            while not end_of_track.wait(0.1):
                 pass
+
         except IndexError:
             # this happends when the playlist is empty
+            log.info('empty playlist')
             self.add_track()
         except LibError:
             # this happends when the track is not available
+            log.info('track not available')
             self.remove_track(track)
             self.add_track()
+        except KeyboardInterrupt:
+            pass
 
         self.play_track()
 
     def add_track(self):
-        requests.post(self.remote_url,
-                      data=json.dumps(
-                          {'client_address': self.client_address}),
-                      headers=self.auth_header)
+        log.info('adding track')
+        r = requests.post(self.remote_url,
+                          data=json.dumps(
+                              {'client_address': self.client_address}),
+                          headers=self.auth_header)
+        log.info(r.status_code)
 
     def remove_track(self, track):
         requests.delete(self.remote_url,
